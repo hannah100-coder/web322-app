@@ -1,5 +1,13 @@
-//var blog_service = require('blog-service.js');
-//import posts from '/data/posts.json';
+/*********************************************************************************
+*  WEB322 – Assignment 02
+*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source 
+*  (including 3rd party web sites) or distributed to other students.
+* 
+*  Name: ____Hannah Baek_________ Student ID: _15375528____ Date: __Feb 03, 2023____
+*
+*  Online (Cyclic) Link: https://plum-sore-catfish.cyclic.app
+*
+********************************************************************************/ 
 
 var express = require("express");
 var app = express();

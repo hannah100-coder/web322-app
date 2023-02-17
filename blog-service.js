@@ -7,6 +7,7 @@ let filepath_posts = path.join(__dirname, '/data/posts.json');
 let filepath_categories = path.join(__dirname, '/data/categories.json');
 let posts;
 let categories;
+let postData;
 
 
 exports.initialize = function() {
@@ -68,7 +69,7 @@ exports.getCategories = function() {
     })
 }
 
-exports.addPost(postData) = function() {
+exports.addPost = function(postData) {
     return new Promise((resolve, reject) => {
         if(postData.published === undefined){
             postData.published = false;

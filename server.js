@@ -1,14 +1,3 @@
-/*********************************************************************************
- *  WEB322 – Assignment 02
- *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source
- *  (including 3rd party web sites) or distributed to other students.
- *
- *  Name: ____Hannah Baek_________ Student ID: _15375528____ Date: __Feb 03, 2023____
- *
- *  Online (Cyclic) Link: https://plum-sore-catfish.cyclic.app
- *
- ********************************************************************************/
-
 var express = require("express");
 var app = express();
 var path = require("path");
@@ -17,6 +6,9 @@ const {
   initialize,
   getCategories,
   getAllPosts,
+  getPostsByCategory,
+  getPostsByMinDate,
+  getPostById
 } = require("./blog-service");
 app.use(express.static("public"));
 
@@ -64,14 +56,48 @@ app.get("/blog", function (req, res) {
 });
 
 app.get("/posts", function (req, res) {
-  getAllPosts()
+  let category = req.query.category;
+  let minDate = req.query.mindate;
+  console.log('category: ', category);
+  console.log('mindate: ', minDate)
+  if(category) {
+    getPostsByCategory(Number(category))
+      .then((data) => {
+        res.send(data);
+      })
+      .catch((err) => {
+        res.send(`{message: ${err}}`);
+      })
+  }else if(minDate) {
+    getPostsByMinDate(minDate)
+      .then((data) => {
+        res.send(data);
+    })
+      .catch((err) => {
+        res.send(`{message: ${err}}`);
+    })
+  }else {
+    getAllPosts()
+      .then((data) => {
+        res.send(data);
+    })
+      .catch((err) => {
+        res.send(`{message: ${err}}`);
+    });
+  }
+});
+
+app.get("/post/:id", function(req,res) {
+  let id = req.params.id;
+  getPostById(id)
     .then((data) => {
       res.send(data);
-    })
+  })
     .catch((err) => {
       res.send(`{message: ${err}}`);
-    });
-});
+  });
+
+})
 
 app.get("/categories", function (req, res) {
   getCategories()
@@ -88,6 +114,7 @@ app.get("/posts/add", function (req, res) {
 });
 
 app.post("/posts/add", function (req, res) {
+  console.log('post request')
   let streamUpload = (req) => {
     return new Promise((resolve, reject) => {
       let stream = cloudinary.uploader.upload_stream((error, result) => {

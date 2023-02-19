@@ -12,7 +12,6 @@ let postData;
 
 exports.initialize = function() {
     return new Promise((resolve, reject) => {
-        console.log('in promise')
 
         let r_posts = fs.readFileSync(filepath_posts)
             
@@ -80,5 +79,56 @@ exports.addPost = function(postData) {
         posts.push(postData);
         
         resolve(postData);
+    })
+}
+
+exports.getPostsByCategory = function(value) {
+    return new Promise ((resolve, reject) => {
+        let c_posts = [];
+
+        posts.forEach((post) => {
+            if(post.category === value) {
+                c_posts.push(post);
+            }
+        })
+        if(c_posts.length > 0) {
+            resolve(c_posts);
+        } else {
+            reject('no results returned');
+        }
+    })
+}
+
+exports.getPostsByMinDate = function(minDateStr) {
+    return new Promise ((resolve, reject) => {
+        let m_posts = [];
+        posts.forEach((post) => {
+            let minDate = new Date(minDateStr);
+            let postDate = new Date(post.postDate);
+            if(minDate.getTime() <= postDate.getTime()){
+                m_posts.push(post);
+            }
+        })
+        if(m_posts.length > 0){
+            resolve(m_posts);
+        }else {
+            reject('no results returned');
+        }
+    })
+}
+
+exports.getPostById = function(id) {
+    return new Promise ((resolve, reject) => {
+        let result;
+        posts.forEach((post) => {
+            if(Number(id) === post.id) {
+                result = post;
+            }
+        })
+    if(result){
+        resolve(result);
+    }else {
+        reject('no results returned');
+    } 
     })
 }

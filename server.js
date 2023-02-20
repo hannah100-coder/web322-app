@@ -1,3 +1,16 @@
+/*********************************************************************************
+*  WEB322 – Assignment 03
+*  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part 
+*  of this assignment has been copied manually or electronically from any other source 
+*  (including 3rd party web sites) or distributed to other students.
+* 
+*  Name: __Hannah Baek___ Student ID: _153755228_ Date: _Feb 19, 2023_
+*
+*  Online (Cyclic) Link: https://plum-sore-catfish.cyclic.app
+
+*
+********************************************************************************/ 
+
 var express = require("express");
 var app = express();
 var path = require("path");
@@ -8,7 +21,8 @@ const {
   getAllPosts,
   getPostsByCategory,
   getPostsByMinDate,
-  getPostById
+  getPostById,
+  addPost
 } = require("./blog-service");
 app.use(express.static("public"));
 
@@ -16,6 +30,7 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
 
+const upload = multer(); // no { storage: storage } since we are not using disk storage
 
 cloudinary.config({
   cloud_name: 'dy3q249qx',
@@ -23,9 +38,6 @@ cloudinary.config({
   api_secret: 'nB-5ecweXuAuuG7OEl37HJCLsuw',
   secure: true
 });
-
-const upload = multer(); // no { storage: storage } since we are not using disk storage
-
 
 
 var HTTP_PORT = process.env.PORT || 8080;
@@ -58,8 +70,6 @@ app.get("/blog", function (req, res) {
 app.get("/posts", function (req, res) {
   let category = req.query.category;
   let minDate = req.query.mindate;
-  console.log('category: ', category);
-  console.log('mindate: ', minDate)
   if(category) {
     getPostsByCategory(Number(category))
       .then((data) => {
@@ -114,35 +124,39 @@ app.get("/posts/add", function (req, res) {
 });
 
 app.post("/posts/add", function (req, res) {
-  console.log('post request')
-  let streamUpload = (req) => {
-    return new Promise((resolve, reject) => {
-      let stream = cloudinary.uploader.upload_stream((error, result) => {
-        if (result) {
-          resolve(result);
-        } else {
-          reject(error);
-        }
+  upload.single("featureImage")(req,res,function(err){
+    if(err){
+      res.send(`{message: ${err}}`)
+    }else{
+      let streamUpload = (req) => {
+      return new Promise((resolve, reject) => {
+        let stream = cloudinary.uploader.upload_stream((error, result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        });
+
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
       });
+    };
 
-      streamifier.createReadStream(req.file.buffer).pipe(stream);
-    });
-  };
+    async function upload(req) {
+      let result = await streamUpload(req);
+      console.log(result);
+      return result;
+    }
+    upload(req).then((uploaded) => {
+        req.body.featureImage = uploaded.url;
 
-  async function upload(req) {
-    let result = await streamUpload(req);
-    console.log(result);
-    return result;
-  }
-
-  upload(req).then((uploaded) => {
-    req.body.featureImage = uploaded.url;
-
-    // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
-    addPost(postData);
+        // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
+        addPost(req.body).then((postData) => {
+          res.redirect("/posts");
+        });
+      });
+    }
   });
-
-  res.redirect("/posts")
 });
 
 initialize()

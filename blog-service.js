@@ -76,6 +76,7 @@ exports.addPost = function(postData) {
             postData.published = true;
         }
         postData.id = posts.length + 1;
+        postData.postDate = new Date();
         posts.push(postData);
         
         resolve(postData);
@@ -130,5 +131,22 @@ exports.getPostById = function(id) {
     }else {
         reject('no results returned');
     } 
+    })
+}
+
+exports.getPublishedPostsByCategory = function(category) {
+    return new Promise ((resolve, reject) => {
+        let publishedPosts = [];
+        posts.forEach((post) => {
+            if(post.published === true && post.category == category) {
+                publishedPosts.push(post);
+            }
+        })
+
+        if(publishedPosts.length > 0) {
+            resolve(publishedPosts);
+        } else {
+            reject ('no results returned');
+        }
     })
 }

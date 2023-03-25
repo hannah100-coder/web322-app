@@ -1,10 +1,10 @@
 /*********************************************************************************
-*  WEB322 – Assignment 04
+*  WEB322 – Assignment 05
 *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part 
 *  of this assignment has been copied manually or electronically from any other source 
 *  (including 3rd party web sites) or distributed to other students.
 * 
-*  Name: __Hannah Baek___ Student ID: 153755228 Date: Mar 10, 2023
+*  Name: __Hannah Baek___ Student ID: 153755228 Date: Mar 24, 2023
 *
 *  Online (Cyclic) Link: https://plum-sore-catfish.cyclic.app
 ********************************************************************************/ 
@@ -75,6 +75,7 @@ app.engine('.hbs', exphbs.engine({
   }
 }));
 
+app.use(express.urlencoded({extended: true}));
 
 
 var HTTP_PORT = process.env.PORT || 8080;
@@ -156,7 +157,11 @@ app.get("/posts", function (req, res) {
     blogData.getPostsByCategory(Number(category))
       .then((data) => {
         //res.send(data);
-        res.render("posts", {posts: data})
+        if(data.length > 0){
+          res.render("posts", {posts: data})
+        }else{
+          res.render("posts", {message: "no results"});
+        }
       })
       .catch((err) => {
         //res.send(`{message: ${err}}`);
@@ -166,7 +171,11 @@ app.get("/posts", function (req, res) {
     blogData.getPostsByMinDate(minDate)
       .then((data) => {
         //res.send(data);
-        res.render("posts", {posts: data})
+        if(data.length > 0){
+          res.render("posts", {posts: data})
+        }else{
+          res.render("posts", {message: "no results"});
+        }
     })
       .catch((err) => {
         //res.send(`{message: ${err}}`);
@@ -176,7 +185,11 @@ app.get("/posts", function (req, res) {
     blogData.getAllPosts()
       .then((data) => {
         //res.send(data);
-        res.render("posts", {posts: data})
+        if(data.length > 0){
+          res.render("posts", {posts: data})
+        }else{
+          res.render("posts", {message: "no results"});
+        }
     })
       .catch((err) => {
         //res.send(`{message: ${err}}`);
@@ -200,11 +213,13 @@ app.get("/post/:id", function(req,res) {
 app.get("/categories", function (req, res) {
   blogData.getCategories()
     .then((data) => {
-      //res.send(data);
-      res.render("categories", {categories: data});
+      if(data.length > 0){
+        res.render("categories", {categories: data});
+      }else{
+        res.render("categories", {message: "no results"});
+      }
     })
     .catch((err) => {
-      //res.send(`{message: ${err}}`);
       res.render("categories", {message: "no results"});
     });
 });
@@ -214,41 +229,6 @@ app.get("/posts/add", function (req, res) {
   res.render('addPost');
 });
 
-// app.post("/posts/add", function (req, res) {
-//   upload.single("featureImage")(req,res,function(err){
-//     if(err){
-//       res.send(`{message: ${err}}`)
-//     }else{
-//       let streamUpload = (req) => {
-//       return new Promise((resolve, reject) => {
-//         let stream = cloudinary.uploader.upload_stream((error, result) => {
-//           if (result) {
-//             resolve(result);
-//           } else {
-//             reject(error);
-//           }
-//         });
-
-//         streamifier.createReadStream(req.file.buffer).pipe(stream);
-//       });
-//     };
-
-//     async function upload(req) {
-//       let result = await streamUpload(req);
-//       console.log(result);
-//       return result;
-//     }
-//     upload(req).then((uploaded) => {
-//         req.body.featureImage = uploaded.url;
-
-//         // TODO: Process the req.body and add it as a new Blog Post before redirecting to /posts
-//         blogData.addPost(req.body).then((postData) => {
-//           res.redirect("/posts");
-//         });
-//       });
-//     }
-//   });
-// });
 
 app.post("/posts/add", upload.single("featureImage"), (req,res)=>{
 
@@ -293,7 +273,7 @@ app.post("/posts/add", upload.single("featureImage"), (req,res)=>{
   }   
 });
 
-app.get('/blog/:id', async (req, res) => {
+app.get('/blog/:id', (req, res) => {
 
   // Declare an object to store properties for the view
   let viewData = {};
@@ -342,6 +322,40 @@ app.get('/blog/:id', async (req, res) => {
   // render the "blog" view with all of the data (viewData)
   res.render("blog", {data: viewData})
 });
+
+
+app.get('/categories/add',(req, res) => {
+    res.render('addCategory');
+})
+
+app.post('/categories/add', (req,res) => {
+  blogData.addCategory(req.body).then(category=>{
+      res.redirect("/categories");
+  }).catch(err=>{
+      res.status(500).send(err);
+  })
+})
+
+app.get('/categories/delete/:id', (req, res) => {
+  let id = req.params.id;
+  blogData.deleteCategoryById(id)
+    .then(() => {
+      redirect('/categories')
+    }).catch(err => {
+      res.status(500).send('Unable to Remove Category / Category not found');
+    })
+})
+
+app.get('/posts/delete/:id', (req, res) => {
+  let id = req.params.id;
+  blogData.deletePostById(id)
+    .then(() => {
+      redirect('/posts')
+    }).catch(err => {
+      res.status(500).send('Unable to Remove Post / Post not found');
+    })
+})
+
 
 blogData.initialize()
   .then(() => app.listen(HTTP_PORT, onHttpStart))
